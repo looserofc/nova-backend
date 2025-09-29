@@ -19,10 +19,10 @@ async function createAdminUser() {
     console.log('✅ Connected to database');
 
     // Your admin credentials - CHANGE THESE AS NEEDED
-    const email = process.env.ADMIN_EMAIL || 'admin@novadam.com';
-    const username = process.env.ADMIN_USERNAME || 'adminnovadam';
-    const password = process.env.ADMIN_PASSWORD || '@#Conquer145@#'; // Change this to your preferred password
-    const phone = process.env.ADMIN_PHONE || '+923359140077';
+    const email = process.env.ADMIN_EMAIL;
+    const username = process.env.ADMIN_USERNAME;
+    const password = process.env.ADMIN_PASSWORD; // Change this to your preferred password
+    const phone = process.env.ADMIN_PHONE;
 
     // Check if admin already exists
     const adminExists = await client.query(
