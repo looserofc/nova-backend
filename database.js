@@ -2,7 +2,7 @@ const Database = require('better-sqlite3');
 const path = require('path');
 
 // Initialize database with proper settings
-const dbPath = path.join(__dirname, 'nova.db');
+const dbPath = process.env.DB_PATH || './nova.db';
 let db;
 let isInitialized = false;
 
