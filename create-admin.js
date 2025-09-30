@@ -21,11 +21,7 @@ async function createAdminUser() {
     // Your admin credentials - CHANGE THESE AS NEEDED
     const email = process.env.ADMIN_EMAIL;
     const username = process.env.ADMIN_USERNAME;
-<<<<<<< HEAD
     const password = process.env.ADMIN_PASSWORD; // Change this to your preferred password
-=======
-    const password = process.env.ADMIN_PASSWORD;
->>>>>>> c009f05e4f553387ab306c98a53a316956371761
     const phone = process.env.ADMIN_PHONE;
 
     // Check if admin already exists
