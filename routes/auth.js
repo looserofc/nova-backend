@@ -59,10 +59,10 @@ const sendVerificationEmail = async (email, token) => {
     return { success: false, error: 'Email not configured' };
   }
 
-  const verificationLink = `http://localhost:5000/auth/verify-email?token=${token}`;
+  const verificationLink = `http://www.novadam.com/auth/verify-email?token=${token}`;
   
   const mailOptions = {
-    from: process.env.EMAIL || 'moizrehmanofficial@gmail.com',
+    from: process.env.EMAIL,
     to: email,
     subject: 'Verify Your Nova Digital Account',
     html: `
