@@ -12,10 +12,10 @@ let transporter = null;
 if (process.env.EMAIL && process.env.EMAIL_PASSWORD) {
   try {
     transporter = nodemailer.createTransport({
-      service: 'gmail',
-      host: 'smtp.gmail.com',
-      port: 587,
-      secure: false,
+      service: 'smtp.hostinger.com',         //gmail
+      host: 'smtp.hostinger.com',   //smtp.gmail.com
+      port: 465,                //587
+      secure: true,            //false
       auth: {
         user: process.env.EMAIL,
         pass: process.env.EMAIL_PASSWORD,
@@ -59,7 +59,7 @@ const sendVerificationEmail = async (email, token) => {
     return { success: false, error: 'Email not configured' };
   }
 
-  const verificationLink = `http://www.novadam.com/auth/verify-email?token=${token}`;
+  const verificationLink = `http://localhost:5000/auth/verify-email?token=${token}`;
   
   const mailOptions = {
     from: process.env.EMAIL,

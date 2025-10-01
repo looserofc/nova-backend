@@ -63,7 +63,7 @@ async function initializeApp() {
       res.json({ 
         message: 'Nova Digital Asset Management API',
         version: '2.0.0',
-        database: 'PostgreSQL',
+        database: 'SQLite',
         status: 'Running'
       });
     });
@@ -94,7 +94,7 @@ async function initializeApp() {
       res.json({
         name: 'Nova Digital Asset Management API',
         version: '2.0.0',
-        database: 'PostgreSQL',
+        database: 'SQLite',
         endpoints: {
           auth: '/auth/*',
           payments: '/payments/*',
@@ -161,7 +161,7 @@ async function initializeApp() {
     app.listen(PORT, () => {
       console.log(`🚀 Nova Digital API Server running on port ${PORT}`);
       console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
-      console.log(`📊 Database: PostgreSQL`);
+      console.log(`📊 Database: SQLite`);
       console.log(`🔗 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
       console.log('');
       console.log('📋 Available endpoints:');
