@@ -15,11 +15,13 @@ app.use(cors({
   origin: [
     'https://novadam.com',
     'https://www.novadam.com',
-    'https://nova-frontend.vercel.app',
-    'http://localhost:3000'
+    'http://localhost:3000' // Keep for local testing
   ],
-  credentials: true
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization']
 }));
+
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
