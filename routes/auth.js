@@ -59,7 +59,8 @@ const sendVerificationEmail = async (email, token) => {
     return { success: false, error: 'Email not configured' };
   }
 
-  const verificationLink = `http://localhost:5000/auth/verify-email?token=${token}`;
+  const backendUrl = process.env.BACKEND_URL || process.env.FRONTEND_URL || 'http://localhost:5000';
+const verificationLink = `${backendUrl}/auth/verify-email?token=${token}`;
   
   const mailOptions = {
     from: process.env.EMAIL,
@@ -238,7 +239,7 @@ router.get('/verify-email', async (req, res) => {
           <body style="font-family: Arial, sans-serif; text-align: center; padding: 50px;">
             <h2 style="color: green;">Email Verified Successfully!</h2>
             <p>Your email has been verified. You can now login to your account.</p>
-            <a href="http://localhost:3000" style="color: #2C3E50;">Go to Login</a>
+            <a href="${process.env.FRONTEND_URL || 'http://localhost:3000'}" style="color: #2C3E50;">Go to Login</a>
           </body>
         </html>
       `);
