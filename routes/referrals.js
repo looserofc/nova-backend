@@ -12,7 +12,7 @@ router.get('/', authenticateToken, (req, res) => {
     console.log(`Fetching referral data for user ID: ${userId}`);
     
     // Get referral link
-    const referralLink = `http://localhost:3000/signup?ref=${req.user.username}`;
+    const referralLink = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/signup?ref=${req.user.username}`;
     
     // Get referred users with their payment status - UPDATED FOR MANUAL DEPOSITS
     const referredUsers = db.prepare(`
