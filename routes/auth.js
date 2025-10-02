@@ -323,55 +323,13 @@ router.post('/login', async (req, res) => {
 
     // Check if email is verified (only if email service is configured)
     // FIX: Check if transporter exists before using it
-    // if (transporter && !user.is_verified) {
-    //   return res.status(403).json({ 
-    //     error: 'Email not verified. Please check your email for verification link.',
-    //     needsVerification: true 
-    //   });
-    // }
-
-    if (!skipEmailVerification && !user.is_verified) {
+    if (transporter && !user.is_verified) {
       return res.status(403).json({ 
         error: 'Email not verified. Please check your email for verification link.',
         needsVerification: true 
       });
     }
 
-
-    app.post('/verify-admin', async (req, res) => {
-  try {
-    const { secret, testPassword } = req.body;
-    
-    if (secret !== process.env.SETUP_SECRET) {
-      return res.status(403).json({ error: 'Invalid secret' });
-    }
-    
-    const db = getDb();
-    const bcrypt = require('bcryptjs');
-    
-    const admin = db.prepare('SELECT * FROM users WHERE username = ?').get('admin');
-    
-    if (!admin) {
-      return res.json({ error: 'Admin user not found' });
-    }
-    
-    const envPasswordMatches = await bcrypt.compare(process.env.ADMIN_PASSWORD, admin.password);
-    const testPasswordMatches = testPassword ? await bcrypt.compare(testPassword, admin.password) : null;
-    
-    res.json({
-      adminExists: true,
-      isAdmin: admin.isAdmin,
-      envPasswordMatches: envPasswordMatches,
-      testPasswordMatches: testPasswordMatches,
-      envPasswordLength: process.env.ADMIN_PASSWORD ? process.env.ADMIN_PASSWORD.length : 0
-    });
-    
-  } catch (error) {
-    res.status(500).json({ error: error.message });
-  }
-});
-
-    
     // Generate session ID
     const sessionId = generateSessionId();
     
