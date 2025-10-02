@@ -70,25 +70,26 @@ async function initializeApp() {
     });
 
     // Health check endpoint
-    app.get('/health', async (req, res) => {
-      try {
-        const { queryRow } = require('./database');
-        await queryRow('SELECT 1');
-        res.json({ 
-          status: 'OK', 
-          database: 'connected',
-          timestamp: new Date().toISOString(),
-          version: '2.0.0'
-        });
-      } catch (error) {
-        res.status(500).json({ 
-          status: 'ERROR', 
-          database: 'disconnected', 
-          timestamp: new Date().toISOString(),
-          error: error.message
-        });
-      }
+    // Health check endpoint
+app.get('/health', (req, res) => {
+  try {
+    const db = getDb();
+    // Simple query to check database is alive
+    db.prepare('SELECT 1').get();
+    
+    res.status(200).json({ 
+      status: 'OK', 
+      database: 'connected',
+      timestamp: new Date().toISOString()
     });
+  } catch (error) {
+    res.status(500).json({ 
+      status: 'ERROR', 
+      database: 'disconnected',
+      error: error.message 
+    });
+  }
+});
 
     // API info endpoint
     app.get('/api', (req, res) => {
@@ -159,7 +160,7 @@ async function initializeApp() {
     });
 
     // Start server
-    app.listen(PORT, () => {
+    app.listen(PORT, '0.0.0.0' () => {
       console.log(`🚀 Nova Digital API Server running on port ${PORT}`);
       console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
       console.log(`📊 Database: SQLite`);
