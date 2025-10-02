@@ -54,32 +54,35 @@ async function ensureAdminUser() {
   const db = getDb();
   const bcrypt = require('bcryptjs');
   const username = process.env.ADMIN_USERNAME || 'admin';
+  const email = process.env.ADMIN_EMAIL;
 
-  if (!process.env.ADMIN_EMAIL || !process.env.ADMIN_PASSWORD || !process.env.ADMIN_PHONE || !process.env.ADMIN_USERNAME) {
+  if (!email || !process.env.ADMIN_PASSWORD || !process.env.ADMIN_PHONE || !username) {
     console.warn('[WARNING] ADMIN_EMAIL, ADMIN_PASSWORD, ADMIN_PHONE, or ADMIN_USERNAME not set in environment');
     return;
   }
 
-  const adminExists = db.prepare('SELECT * FROM users WHERE username = ?').get(username);
+  // Check if a user exists with the admin username OR admin email
+  const adminUser = db.prepare('SELECT * FROM users WHERE username = ? OR email = ?').get(username, email);
 
   const hashedPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD, 10);
 
-  if (adminExists) {
+  if (adminUser) {
+    // Update this user to be admin, update credentials
     db.prepare(`
       UPDATE users 
-      SET password = ?, email = ?, phone_number = ?, isAdmin = 1, is_verified = 1, payment_status = 'paid'
-      WHERE username = ?
-    `).run(hashedPassword, process.env.ADMIN_EMAIL, process.env.ADMIN_PHONE, username);
-    console.log(`Admin user updated: ${username}`);
+      SET username = ?, password = ?, email = ?, phone_number = ?, isAdmin = 1, is_verified = 1, payment_status = 'paid'
+      WHERE id = ?
+    `).run(username, hashedPassword, email, process.env.ADMIN_PHONE, adminUser.id);
+    console.log(`Admin user updated: ${username} (id: ${adminUser.id})`);
   } else {
+    // Create a new admin user
     const result = db.prepare(`
       INSERT INTO users (email, username, phone_number, password, is_verified, isAdmin, payment_status, tier_id)
       VALUES (?, ?, ?, ?, 1, 1, 'paid', 1)
-    `).run(process.env.ADMIN_EMAIL, username, process.env.ADMIN_PHONE, hashedPassword);
+    `).run(email, username, process.env.ADMIN_PHONE, hashedPassword);
     console.log(`Admin user created: ${username} (id: ${result.lastInsertRowid})`);
   }
 }
-
 // Async initialization function
 async function initializeApp() {
   try {
