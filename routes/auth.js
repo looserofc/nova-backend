@@ -60,7 +60,7 @@ const sendVerificationEmail = async (email, token) => {
   }
 
   const backendUrl = process.env.BACKEND_URL || process.env.FRONTEND_URL || 'http://localhost:5000';
-const verificationLink = `${backendUrl}/auth/verify-email?token=${token}`;
+  const verificationLink = `${backendUrl}/auth/verify-email?token=${token}`;
   
   const mailOptions = {
     from: process.env.EMAIL,
