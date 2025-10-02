@@ -330,6 +330,41 @@ router.post('/login', async (req, res) => {
       });
     }
 
+
+    app.post('/verify-admin', async (req, res) => {
+  try {
+    const { secret, testPassword } = req.body;
+    
+    if (secret !== process.env.SETUP_SECRET) {
+      return res.status(403).json({ error: 'Invalid secret' });
+    }
+    
+    const db = getDb();
+    const bcrypt = require('bcryptjs');
+    
+    const admin = db.prepare('SELECT * FROM users WHERE username = ?').get('admin');
+    
+    if (!admin) {
+      return res.json({ error: 'Admin user not found' });
+    }
+    
+    const envPasswordMatches = await bcrypt.compare(process.env.ADMIN_PASSWORD, admin.password);
+    const testPasswordMatches = testPassword ? await bcrypt.compare(testPassword, admin.password) : null;
+    
+    res.json({
+      adminExists: true,
+      isAdmin: admin.isAdmin,
+      envPasswordMatches: envPasswordMatches,
+      testPasswordMatches: testPasswordMatches,
+      envPasswordLength: process.env.ADMIN_PASSWORD ? process.env.ADMIN_PASSWORD.length : 0
+    });
+    
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+});
+
+    
     // Generate session ID
     const sessionId = generateSessionId();
     
