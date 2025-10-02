@@ -1,7 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
-const { initDatabase } = require('./database');
+const { initDatabase, getDb } = require('./database'); // Add getDb import
 const initTestData = require('./scripts/init-test-data');
 
 dotenv.config();
@@ -14,7 +14,7 @@ app.use(cors({
   origin: [
     'https://novadam.com',
     'https://www.novadam.com',
-    'http://localhost:3000' // Keep for local testing
+    'http://localhost:3000'
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
@@ -28,6 +28,25 @@ app.use(express.urlencoded({ extended: true }));
 app.use((req, res, next) => {
   console.log(`${new Date().toISOString()} - ${req.method} ${req.path}`);
   next();
+});
+
+// CRITICAL: Add health check BEFORE initialization
+// This allows Render to verify the service is running
+app.get('/health', (req, res) => {
+  res.status(200).json({ 
+    status: 'OK',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// Basic route
+app.get('/', (req, res) => {
+  res.json({ 
+    message: 'Nova Digital Asset Management API',
+    version: '2.0.0',
+    database: 'SQLite',
+    status: 'Running'
+  });
 });
 
 // Async initialization function
@@ -59,38 +78,6 @@ async function initializeApp() {
     app.use('/referrals', referralsRoutes);
     app.use('/admin', adminRoutes);
 
-    // Basic route
-    app.get('/', (req, res) => {
-      res.json({ 
-        message: 'Nova Digital Asset Management API',
-        version: '2.0.0',
-        database: 'SQLite',
-        status: 'Running'
-      });
-    });
-
-    // Health check endpoint
-    // Health check endpoint
-app.get('/health', (req, res) => {
-  try {
-    const db = getDb();
-    // Simple query to check database is alive
-    db.prepare('SELECT 1').get();
-    
-    res.status(200).json({ 
-      status: 'OK', 
-      database: 'connected',
-      timestamp: new Date().toISOString()
-    });
-  } catch (error) {
-    res.status(500).json({ 
-      status: 'ERROR', 
-      database: 'disconnected',
-      error: error.message 
-    });
-  }
-});
-
     // API info endpoint
     app.get('/api', (req, res) => {
       res.json({
@@ -121,38 +108,6 @@ app.get('/health', (req, res) => {
     // Global error handling middleware
     app.use((error, req, res, next) => {
       console.error('Unhandled error:', error);
-      
-      // Database connection errors
-      if (error.code === 'ECONNREFUSED' || error.code === 'ENOTFOUND') {
-        return res.status(503).json({ 
-          error: 'Database connection failed',
-          message: 'Please check database configuration'
-        });
-      }
-
-      // PostgreSQL specific errors
-      if (error.code === '23505') { // Unique violation
-        return res.status(400).json({ 
-          error: 'Duplicate entry',
-          message: 'A record with this information already exists'
-        });
-      }
-
-      if (error.code === '23503') { // Foreign key violation
-        return res.status(400).json({ 
-          error: 'Invalid reference',
-          message: 'Referenced record does not exist'
-        });
-      }
-
-      if (error.code === '23502') { // Not null violation
-        return res.status(400).json({ 
-          error: 'Missing required field',
-          message: 'Required information is missing'
-        });
-      }
-
-      // Generic server error
       res.status(500).json({ 
         error: 'Internal server error',
         message: 'An unexpected error occurred'
@@ -160,45 +115,16 @@ app.get('/health', (req, res) => {
     });
 
     // Start server
-    app.listen(PORT, () => {
+    app.listen(PORT, '0.0.0.0', () => {  // Add '0.0.0.0' to bind to all interfaces
       console.log(`🚀 Nova Digital API Server running on port ${PORT}`);
-      console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
+      console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
       console.log(`📊 Database: SQLite`);
       console.log(`🔗 Frontend URL: ${process.env.FRONTEND_URL || 'http://localhost:3000'}`);
-      console.log('');
-      console.log('📋 Available endpoints:');
-      console.log('   - /auth/* (Authentication)');
-      console.log('   - /payments/* (Payment processing)');
-      console.log('   - /dashboard (User dashboard)');
-      console.log('   - /ads/* (Advertisement system)');
-      console.log('   - /withdraw/* (Withdrawal system)');
-      console.log('   - /referrals/* (Referral program)');
-      console.log('   - /admin/* (Admin panel)');
-      console.log('');
-      console.log('🔧 Admin Panel: http://localhost:3000/#admin');
     });
 
   } catch (error) {
     console.error('❌ Failed to initialize application:', error);
     console.error('Stack trace:', error.stack);
-    
-    // Provide helpful error messages
-    if (error.code === 'ECONNREFUSED') {
-      console.error('');
-      console.error('🔴 Database connection failed!');
-      console.error('Make sure PostgreSQL is running and check your .env configuration:');
-      console.error('   DATABASE_URL or DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD');
-      console.error('');
-    }
-
-    if (error.message.includes('database') && error.message.includes('does not exist')) {
-      console.error('');
-      console.error('🔴 Database does not exist!');
-      console.error('Create the database first:');
-      console.error('   sudo -u postgres createdb nova_db');
-      console.error('');
-    }
-
     process.exit(1);
   }
 }
@@ -230,17 +156,7 @@ process.on('SIGTERM', async () => {
   }
 });
 
-process.on('unhandledRejection', (reason, promise) => {
-  console.error('Unhandled Rejection at:', promise, 'reason:', reason);
-});
-
-process.on('uncaughtException', (error) => {
-  console.error('Uncaught Exception:', error);
-  process.exit(1);
-});
-
 // Start the application
 initializeApp();
 
-// Export for testing
 module.exports = app;
