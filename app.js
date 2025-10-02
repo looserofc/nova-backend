@@ -160,7 +160,7 @@ app.get('/health', (req, res) => {
     });
 
     // Start server
-    app.listen(PORT, '0.0.0.0' () => {
+    app.listen(PORT, () => {
       console.log(`🚀 Nova Digital API Server running on port ${PORT}`);
       console.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
       console.log(`📊 Database: SQLite`);
