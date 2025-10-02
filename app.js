@@ -69,6 +69,49 @@ async function initializeApp() {
     const referralsRoutes = require('./routes/referrals');
     const adminRoutes = require('./routes/admin');
 
+    // ADD THIS TEMPORARY ADMIN SETUP ENDPOINT HERE
+    app.post('/setup-admin', async (req, res) => {
+      try {
+        const { secret } = req.body;
+        
+        if (secret !== process.env.SETUP_SECRET) {
+          return res.status(403).json({ error: 'Invalid setup secret' });
+        }
+        
+        const db = getDb();
+        const bcrypt = require('bcryptjs');
+        
+        const adminExists = db.prepare('SELECT * FROM users WHERE username = ?').get('admin');
+        
+        if (adminExists) {
+          const hashedPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD, 10);
+          db.prepare(`
+            UPDATE users 
+            SET password = ?, email = ?, phone_number = ?, isAdmin = 1, is_verified = 1, payment_status = 'paid'
+            WHERE username = ?
+          `).run(hashedPassword, process.env.ADMIN_EMAIL, process.env.ADMIN_PHONE, 'admin');
+          
+          return res.json({ message: 'Admin user updated', username: 'admin' });
+        }
+        
+        const hashedPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD, 10);
+        const result = db.prepare(`
+          INSERT INTO users (email, username, phone_number, password, is_verified, isAdmin, payment_status, tier_id)
+          VALUES (?, ?, ?, ?, 1, 1, 'paid', 1)
+        `).run(process.env.ADMIN_EMAIL, 'admin', process.env.ADMIN_PHONE, hashedPassword);
+        
+        res.json({ 
+          message: 'Admin user created successfully',
+          id: result.lastInsertRowid,
+          username: 'admin'
+        });
+        
+      } catch (error) {
+        console.error('Setup admin error:', error);
+        res.status(500).json({ error: error.message });
+      }
+    });
+
     // Use routes
     app.use('/auth', authRoutes);
     app.use('/payments', paymentsRoutes);
